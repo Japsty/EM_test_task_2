@@ -14,12 +14,6 @@ const (
 		RETURNING id;
 	`
 
-	FindUserByHash = `
-		SELECT id, passport_hash, surname, name, patronymic, address
-		FROM users
-		WHERE passport_hash = $1;
-	`
-
 	FindUserByID = `
 		SELECT id, passport_hash, surname, name, patronymic, address
 		FROM users
@@ -28,7 +22,9 @@ const (
 
 	UpdateUser = `
 		UPDATE user
-		SET passport_hash,surname,name,patronymic,address
+		SET passport_hash = $2,surname= $3,name= $4,patronymic= $5,address= $6
+		WHERE id = $1
+		RETURNING id, passport_hash,surname,name,patronymic,address;
 	`
 
 	DeleteUser = `

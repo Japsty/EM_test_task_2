@@ -17,7 +17,7 @@ func NewTasksRepository(db *sql.DB) *TasksRepository {
 func (tr *TasksRepository) AddTask(context.Context, string, int) (models.Task, error) {
 
 }
-func (tr *TasksRepository) FindTaskById(context.Context, int) (models.Task, error) {
+func (tr *TasksRepository) FindTaskByID(context.Context, int) (models.Task, error) {
 
 }
 
@@ -25,7 +25,7 @@ func (tr *TasksRepository) FindTasksByUserID(context.Context, int) ([]models.Tas
 
 }
 
-func (tr *TasksRepository) DeleteTaskById(context.Context, int) error {
+func (tr *TasksRepository) DeleteTaskByID(context.Context, int) error {
 
 }
 
