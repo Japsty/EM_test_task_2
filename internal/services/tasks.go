@@ -14,25 +14,55 @@ func NewTaskService(repo *repos.TasksRepository) *TaskService {
 	return &TaskService{tasksRepo: *repo}
 }
 
-func (tr *TaskService) CreateTask(context.Context, string, int) (Task, error) {
+func (tr *TaskService) CreateTask(ctx context.Context, name string, usrID int) (models.Task, error) {
+	task, err := tr.tasksRepo.AddTask(ctx, name, usrID)
+	if err != nil {
+		return models.Task{}, err
+	}
 
+	return task, nil
 }
-func (tr *TaskService) GetTaskByID(context.Context, int) (models.Task, error) {
+func (tr *TaskService) GetTaskByID(ctx context.Context, id int) (models.Task, error) {
+	task, err := tr.tasksRepo.FindTaskByID(ctx, id)
+	if err != nil {
+		return models.Task{}, err
+	}
 
-}
-
-func (tr *TaskService) GetTasksByUserID(context.Context, int) ([]models.Task, error) {
-
-}
-
-func (tr *TaskService) DeleteTaskById(context.Context, int) error {
-
-}
-
-func (tr *TaskService) StartTimeTracker(context.Context, int, int) error {
-
+	return task, nil
 }
 
-func (tr *TaskService) StopTimeTracker(context.Context, int, int) error {
+func (tr *TaskService) GetTasksByUserID(ctx context.Context, usrID int) ([]models.Task, error) {
+	tasks, err := tr.tasksRepo.FindTasksByUserID(ctx, usrID)
+	if err != nil {
+		return nil, err
+	}
 
+	return tasks, nil
+}
+
+func (tr *TaskService) DeleteTaskByID(ctx context.Context, id int) error {
+	err := tr.tasksRepo.DeleteTaskByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tr *TaskService) StartTimeTracker(ctx context.Context, id int, usrID int) error {
+	err := tr.tasksRepo.StartTimeTracker(ctx, id, usrID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tr *TaskService) StopTimeTracker(ctx context.Context, id int, usrID int) error {
+	err := tr.tasksRepo.StopTimeTracker(ctx, id, usrID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

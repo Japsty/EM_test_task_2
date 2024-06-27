@@ -56,10 +56,19 @@ func main() {
 		return middleware.AccessLog(logger, next)
 	})
 
-	addr := ":8081"
+	r.HandleFunc("/users", uh.GetUsers).Methods("GET")
+	r.HandleFunc("/user/{user_id}", uh.DeleteUser).Methods("DELETE")
+	r.HandleFunc("/user/{user_id}", uh.UpdateUser).Methods("PATCH")
+	r.HandleFunc("/user", uh.AddUser).Methods("POST")
+
+	r.HandleFunc("/user/tasks", th.GetUsersTasks).Methods("GET")
+	r.HandleFunc("/user/task/track", th.StartTracker).Methods("POST")
+	r.HandleFunc("/user/task/stop", th.StopTracker).Methods("POST")
+
+	addr := os.Getenv("PORT")
 	logger.Infow("starting server",
 		"type", "START",
-		"addr", addr,
+		"addr:", addr,
 	)
 
 	err = http.ListenAndServe(addr, r)

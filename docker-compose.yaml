@@ -5,12 +5,11 @@ services:
     image: postgres:latest
     restart: always
     environment:
-      MYSQL_DATABASE: Efficent
-      MYSQL_USER: Efficent
-      MYSQL_PASSWORD: efficent
-      MYSQL_ROOT_PASSWORD: root
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "3306:3306"
+      - "5432:5432"
     networks:
       - service_network
 
@@ -23,9 +22,12 @@ services:
     networks:
       - service_network
     ports:
-      - "8080:8080"
+      - "${PORT}:${PORT}"
     environment:
-      PORT: '8080'
+      - DSN=${DSN}
+      - API_URL=${API_URL}
+      - PORT=${PORT}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
 
 networks:
   service_network:

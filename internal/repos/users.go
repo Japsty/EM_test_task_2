@@ -91,7 +91,7 @@ func (ur *UsersRepository) FindUserByID(ctx context.Context, usrID int) (models.
 	user.PassportNumber = passportData
 	return user, nil
 }
-func (ur *UsersRepository) UpdateUser(ctx context.Context, newUser models.ServiceUser, usrID int) (models.User, error) {
+func (ur *UsersRepository) UpdateUser(ctx context.Context, newUser models.APIResponse, usrID int) (models.User, error) {
 	var user models.User
 	var passHash string
 
@@ -99,7 +99,6 @@ func (ur *UsersRepository) UpdateUser(ctx context.Context, newUser models.Servic
 		ctx,
 		queries.UpdateUser,
 		usrID,
-		newUser.PassportHash,
 		newUser.Surname,
 		newUser.Name,
 		newUser.Patronymic,
