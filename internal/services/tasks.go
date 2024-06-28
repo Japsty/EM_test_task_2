@@ -2,16 +2,15 @@ package services
 
 import (
 	"EMTask/internal/models"
-	"EMTask/internal/repos"
 	"context"
 )
 
 type TaskService struct {
-	tasksRepo repos.TasksRepository
+	tasksRepo models.TaskRepo
 }
 
-func NewTaskService(repo *repos.TasksRepository) *TaskService {
-	return &TaskService{tasksRepo: *repo}
+func NewTaskService(repo models.TaskRepo) *TaskService {
+	return &TaskService{tasksRepo: repo}
 }
 
 func (tr *TaskService) CreateTask(ctx context.Context, name string, usrID int) (models.Task, error) {
@@ -31,8 +30,8 @@ func (tr *TaskService) GetTaskByID(ctx context.Context, id int) (models.Task, er
 	return task, nil
 }
 
-func (tr *TaskService) GetTasksByUserID(ctx context.Context, usrID int) ([]models.Task, error) {
-	tasks, err := tr.tasksRepo.FindTasksByUserID(ctx, usrID)
+func (tr *TaskService) GetTasksByUserID(ctx context.Context, usrID int, start, end string) ([]models.Task, error) {
+	tasks, err := tr.tasksRepo.FindTasksByUserID(ctx, usrID, start, end)
 	if err != nil {
 		return nil, err
 	}

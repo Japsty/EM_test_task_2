@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/Masterminds/squirrel"
 )
 
 var errNotFound = errors.New("user not found: ")
@@ -20,8 +21,32 @@ func NewUsersRepository(db *sql.DB, es *services.EncodeService) *UsersRepository
 	return &UsersRepository{db: db, encService: *es}
 }
 
-func (ur *UsersRepository) GetAllUsers(ctx context.Context) ([]models.User, error) {
-	rows, err := ur.db.QueryContext(ctx, queries.GetAllUsers)
+func (ur *UsersRepository) GetAllUsers(ctx context.Context, filter models.UserFilter, pg, lim int) ([]models.User, error) {
+	query := squirrel.Select("id", "passport_hash", "surname", "name", "patronymic", "address").
+		From("users")
+
+	if filter.Surname != "" {
+		query = query.Where(squirrel.Eq{"surname": filter.Surname})
+	}
+	if filter.Name != "" {
+		query = query.Where(squirrel.Eq{"name": filter.Name})
+	}
+	if filter.Patronymic != "" {
+		query = query.Where(squirrel.Eq{"patronymic": filter.Patronymic})
+	}
+	if filter.Address != "" {
+		query = query.Where(squirrel.Eq{"address": filter.Address})
+	}
+
+	offset := (pg - 1) * lim
+	query = query.Limit(uint64(lim)).Offset(uint64(offset))
+
+	sqlQuery, args, err := query.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := ur.db.QueryContext(ctx, sqlQuery, args)
 	if err != nil {
 		return nil, err
 	}

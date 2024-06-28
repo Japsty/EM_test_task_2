@@ -16,7 +16,7 @@ type Task struct {
 type TaskRepo interface {
 	AddTask(context.Context, string, int) (Task, error)
 	FindTaskByID(context.Context, int) (Task, error)
-	FindTasksByUserID(context.Context, int) ([]Task, error)
+	FindTasksByUserID(context.Context, int, string, string) ([]Task, error)
 	DeleteTaskByID(context.Context, int) error
 	StartTimeTracker(context.Context, int, int) error
 	StopTimeTracker(context.Context, int, int) error
@@ -25,7 +25,7 @@ type TaskRepo interface {
 type TaskService interface {
 	CreateTask(context.Context, string, int) (Task, error)
 	GetTaskByID(context.Context, int) (Task, error)
-	GetTasksByUserID(context.Context, int) ([]Task, error)
+	GetTasksByUserID(context.Context, int, string, string) ([]Task, error)
 	DeleteTaskByID(context.Context, int) error
 	StartTimeTracker(context.Context, int, int) error
 	StopTimeTracker(context.Context, int, int) error

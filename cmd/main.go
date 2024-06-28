@@ -6,12 +6,13 @@ import (
 	"EMTask/internal/repos"
 	"EMTask/internal/services"
 	"EMTask/pkg/storage/connect"
+	"EMTask/pkg/storage/migrate"
+	"context"
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
 	"go.uber.org/zap"
-	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
@@ -27,17 +28,24 @@ func main() {
 	}(zapLogger)
 	logger := zapLogger.Sugar()
 
-	err = godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file: ", err)
-	}
-
 	postgreConn, err := connect.NewPostgresConnection(os.Getenv("DSN"))
 	if err != nil {
 		logger.Error("Connecting to SQL database error: ", err)
 		return
 	}
 	defer postgreConn.Close()
+
+	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	err = migrate.UpMigration(ctxWithTimeout, postgreConn)
+	if err != nil {
+		logger.Fatal("Failed to up migration: ", err)
+	}
+
+	client := http.Client{
+		Timeout: time.Second,
+	}
 
 	es := services.NewEncodeService(os.Getenv("ENCRYPTION_KEY"))
 
@@ -47,7 +55,7 @@ func main() {
 	us := services.NewUserService(userRepo)
 	ts := services.NewTaskService(taskRepo)
 
-	uh := handlers.NewUserHandler(us, logger)
+	uh := handlers.NewUserHandler(us, logger, &client)
 	th := handlers.NewTaskHandler(ts, logger)
 
 	r := mux.NewRouter()
@@ -62,13 +70,13 @@ func main() {
 	r.HandleFunc("/user", uh.AddUser).Methods("POST")
 
 	r.HandleFunc("/user/tasks", th.GetUsersTasks).Methods("GET")
-	r.HandleFunc("/user/task/track", th.StartTracker).Methods("POST")
-	r.HandleFunc("/user/task/stop", th.StopTracker).Methods("POST")
+	r.HandleFunc("/user/task/track/{user_id}/{task_id}", th.StartTracker).Methods("POST")
+	r.HandleFunc("/user/task/stop/{user_id}/{task_id}", th.StopTracker).Methods("POST")
 
-	addr := os.Getenv("PORT")
+	addr := ":" + os.Getenv("PORT")
 	logger.Infow("starting server",
 		"type", "START",
-		"addr:", addr,
+		"addr", addr,
 	)
 
 	err = http.ListenAndServe(addr, r)

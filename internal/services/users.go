@@ -2,22 +2,21 @@ package services
 
 import (
 	"EMTask/internal/models"
-	"EMTask/internal/repos"
 	"context"
 )
 
 type UsersService struct {
-	usersRepo  *repos.UsersRepository
+	usersRepo  models.UserRepo
 	encService EncodeService
 	apiURL     string
 }
 
-func NewUserService(repo *repos.UsersRepository) *UsersService {
+func NewUserService(repo models.UserRepo) *UsersService {
 	return &UsersService{usersRepo: repo}
 }
 
-func (us *UsersService) GetAllUsers(ctx context.Context) ([]models.User, error) {
-	users, err := us.usersRepo.GetAllUsers(ctx)
+func (us *UsersService) GetAllUsers(ctx context.Context, filter models.UserFilter, pg, lim int) ([]models.User, error) {
+	users, err := us.usersRepo.GetAllUsers(ctx, filter, pg, lim)
 	if err != nil {
 		return nil, err
 	}

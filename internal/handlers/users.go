@@ -7,11 +7,9 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
-	"io"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -20,32 +18,42 @@ var TimeoutTime = 500 * time.Millisecond
 type UserHandler struct {
 	UserService models.UserService
 	ZapLogger   *zap.SugaredLogger
+	Client      *http.Client
 }
 
-func NewUserHandler(us models.UserService, logger *zap.SugaredLogger) *UserHandler {
-	return &UserHandler{us, logger}
+func NewUserHandler(us models.UserService, logger *zap.SugaredLogger, client *http.Client) *UserHandler {
+	return &UserHandler{us, logger, client}
 }
 
-func getPeopleInfo(apiURL, passportNumber string) (models.APIResponse, error) {
-	url := fmt.Sprintf("%s/info?passportSerie=%s&passportNumber=%s", apiURL, passportNumber[:4], passportNumber[5:])
-	resp, err := http.Get(url)
+func (uh *UserHandler) getPeopleInfo(passportNumber string) (models.APIResponse, error) {
+	fmt.Println(passportNumber)
+	apiURL := fmt.Sprintf(
+		"%s/info?passportSerie=%s&passportNumber=%s",
+		os.Getenv("API_URL"),
+		passportNumber[:4],
+		passportNumber[5:],
+	)
+	fmt.Println(apiURL)
+
+	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
 	if err != nil {
 		return models.APIResponse{}, err
 	}
-	defer resp.Body.Close()
+	fmt.Println(req.Body)
 
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return models.APIResponse{}, fmt.Errorf("error fetching people info: %s", body)
-	}
-
-	var apiResp models.APIResponse
-	err = json.NewDecoder(resp.Body).Decode(&apiResp)
+	resp, err := uh.Client.Do(req)
 	if err != nil {
 		return models.APIResponse{}, err
 	}
 
-	return apiResp, nil
+	var apiResponse models.APIResponse
+
+	err = json.NewDecoder(resp.Body).Decode(&apiResponse)
+	if err != nil {
+		return models.APIResponse{}, err
+	}
+
+	return apiResponse, nil
 }
 
 func (uh *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +62,28 @@ func (uh *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	reqIDString := fmt.Sprintf("requestID: %s ", r.Context().Value("requestID"))
 
-	users, err := uh.UserService.GetAllUsers(ctxWthTimeout)
+	queryParams := r.URL.Query()
+	filter := models.UserFilter{
+		Surname:    queryParams.Get("surname"),
+		Name:       queryParams.Get("name"),
+		Patronymic: queryParams.Get("patronymic"),
+		Address:    queryParams.Get("address"),
+	}
+
+	page, err := strconv.Atoi(queryParams.Get("page"))
+	if err != nil || page < 1 {
+		uh.ZapLogger.Infof(reqIDString+"GetUsers Invalid Page param: ", r.URL.Query())
+		http.Error(w, " Invalid Page param", http.StatusBadRequest)
+		return
+	}
+	limit, err := strconv.Atoi(queryParams.Get("limit"))
+	if err != nil || limit < 1 {
+		uh.ZapLogger.Infof(reqIDString+"GetUsers Invalid Limit param: ", r.URL.Query())
+		http.Error(w, "Invalid Limit param", http.StatusBadRequest)
+		return
+	}
+
+	users, err := uh.UserService.GetAllUsers(ctxWthTimeout, filter, page, limit)
 	if err != nil {
 		uh.ZapLogger.Error(reqIDString+"GetUsers Atoi Error, caused by: ", r.Body)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -71,11 +100,13 @@ func (uh *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 func (uh *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	userID, _ := strconv.Atoi(mux.Vars(r)["user_id"])
+
 	err := uh.UserService.DeleteUser(r.Context(), userID)
 	if err != nil {
 		http.Error(w, "Error deleting user", http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -88,6 +119,7 @@ func (uh *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	userID, _ := strconv.Atoi(mux.Vars(r)["user_id"])
 
 	var user models.APIResponse
+
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
@@ -123,45 +155,29 @@ func (uh *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passportData := strings.Split(usersPassportData.PassportNumber, " ")
+	//passportData := strings.Split(usersPassportData.PassportNumber, " ")
+	//
+	//series, err := strconv.Atoi(passportData[0])
+	//if err != nil {
+	//	uh.ZapLogger.Error(reqIDString+"AddUser Atoi Error, caused by: ", r.Body)
+	//	http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	//	return
+	//}
+	//
+	//number, err := strconv.Atoi(passportData[1])
+	//if err != nil {
+	//	uh.ZapLogger.Error(reqIDString+"AddUser Atoi Error, caused by: ", r.Body)
+	//	http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	//	return
+	//}
 
-	series, err := strconv.Atoi(passportData[0])
+	//if series/1000 == 0 && number/100000 == 0 {
+	//
+	//}
+
+	apiResponse, err := uh.getPeopleInfo(usersPassportData.PassportNumber)
 	if err != nil {
-		uh.ZapLogger.Error(reqIDString+"AddUser Atoi Error, caused by: ", r.Body)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	number, err := strconv.Atoi(passportData[1])
-	if err != nil {
-		uh.ZapLogger.Error(reqIDString+"AddUser Atoi Error, caused by: ", r.Body)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	if series/1000 == 0 && number/100000 == 0 {
-
-	}
-
-	apiURL := fmt.Sprintf(
-		"%s/info?passportSerie=%s&passportNumber=%s",
-		os.Getenv("API_URL"),
-		usersPassportData.PassportNumber[:5],
-		usersPassportData.PassportNumber[5:],
-	)
-
-	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
-	if err != nil {
-		uh.ZapLogger.Error(reqIDString+"AddUser Request Error, caused by: ", r.Body)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	var apiResponse models.APIResponse
-
-	err = json.NewDecoder(req.Body).Decode(&apiResponse)
-	if err != nil {
-		uh.ZapLogger.Error(reqIDString+"AddUser Decode Error, caused by: ", r.Body)
+		uh.ZapLogger.Error(reqIDString+"AddUser getPeopleInfo Error: ", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}

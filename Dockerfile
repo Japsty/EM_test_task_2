@@ -3,8 +3,9 @@ COPY . /app
 WORKDIR /app
 COPY go.mod .
 COPY go.sum .
+COPY .env .env
 RUN go mod download
-RUN CGO_ENABLED=0 go build -o /app_binary/EMtask ./app/cmd
+RUN CGO_ENABLED=0 go build -o /app_binary/EMtask ./cmd
 
 
 FROM alpine AS run_stage

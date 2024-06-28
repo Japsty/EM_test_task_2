@@ -30,8 +30,15 @@ type APIResponse struct {
 	Address    string `json:"address"`
 }
 
+type UserFilter struct {
+	Surname    string
+	Name       string
+	Patronymic string
+	Address    string
+}
+
 type UserRepo interface {
-	GetAllUsers(context.Context) ([]User, error)
+	GetAllUsers(context.Context, UserFilter, int, int) ([]User, error)
 	AddUser(context.Context, ServiceUser) (int, error)
 	FindUserByID(context.Context, int) (User, error)
 	UpdateUser(context.Context, APIResponse, int) (User, error)
@@ -39,7 +46,7 @@ type UserRepo interface {
 }
 
 type UserService interface {
-	GetAllUsers(context.Context) ([]User, error)
+	GetAllUsers(context.Context, UserFilter, int, int) ([]User, error)
 	CreateUser(context.Context, APIResponse, string) (User, error)
 	GetUserByID(context.Context, int) (User, error)
 	UpdateUser(context.Context, APIResponse, int) (User, error)

@@ -5,8 +5,11 @@ import (
 	"EMTask/internal/repos/queries"
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 )
+
+var errTaskNotFound = errors.New("task not found")
 
 type TasksRepository struct {
 	db *sql.DB
@@ -48,8 +51,8 @@ func (tr *TasksRepository) FindTaskByID(ctx context.Context, id int) (models.Tas
 	return task, nil
 }
 
-func (tr *TasksRepository) FindTasksByUserID(ctx context.Context, usrID int) ([]models.Task, error) {
-	rows, err := tr.db.QueryContext(ctx, queries.FindTasksByUserID, usrID)
+func (tr *TasksRepository) FindTasksByUserID(ctx context.Context, usrID int, startTime, endTime string) ([]models.Task, error) {
+	rows, err := tr.db.QueryContext(ctx, queries.FindTasksByUserIDWithPeriod, usrID, startTime, endTime)
 	if err != nil {
 		return nil, err
 	}
@@ -74,11 +77,31 @@ func (tr *TasksRepository) DeleteTaskByID(ctx context.Context, id int) error {
 }
 
 func (tr *TasksRepository) StartTimeTracker(ctx context.Context, id, usrID int) error {
-	_, err := tr.db.ExecContext(ctx, queries.StartTimeTracker, time.Now(), id, usrID)
-	return err
+	res, err := tr.db.ExecContext(ctx, queries.StartTimeTracker, time.Now(), id, usrID)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errTaskNotFound
+	}
+	return nil
 }
 
 func (tr *TasksRepository) StopTimeTracker(ctx context.Context, id, usrID int) error {
-	_, err := tr.db.ExecContext(ctx, queries.StopTimeTracker, time.Now(), id, usrID)
-	return err
+	res, err := tr.db.ExecContext(ctx, queries.StopTimeTracker, time.Now(), id, usrID)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errTaskNotFound
+	}
+	return nil
 }
