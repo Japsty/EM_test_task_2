@@ -16,11 +16,11 @@ type User struct {
 }
 
 type ServiceUser struct {
-	PassportHash string `json:"passportHash"`
-	Surname      string `json:"surname"`
-	Name         string `json:"name"`
-	Patronymic   string `json:"patronymic"`
-	Address      string `json:"address"`
+	PassportNum string `json:"passportHash"`
+	Surname     string `json:"surname"`
+	Name        string `json:"name"`
+	Patronymic  string `json:"patronymic"`
+	Address     string `json:"address"`
 }
 
 type APIResponse struct {
@@ -31,10 +31,11 @@ type APIResponse struct {
 }
 
 type UserFilter struct {
-	Surname    string
-	Name       string
-	Patronymic string
-	Address    string
+	PassportNum string
+	Surname     string
+	Name        string
+	Patronymic  string
+	Address     string
 }
 
 type UserRepo interface {

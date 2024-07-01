@@ -6,11 +6,16 @@ import (
 )
 
 type Task struct {
-	ID        int       `json:"id"`
-	Name      string    `json:"name"`
-	UserID    int       `json:"user_id"`
-	StartTime time.Time `json:"start_time"`
-	EndTime   time.Time `json:"end_time"`
+	ID        int        `json:"id"`
+	Name      string     `json:"name"`
+	UserID    int        `json:"user_id"`
+	StartTime *time.Time `json:"start_time"`
+	EndTime   *time.Time `json:"end_time"`
+}
+
+type NewTaskRequest struct {
+	Name   string `json:"name"`
+	UserID int    `json:"user_id"`
 }
 
 type TaskRepo interface {
@@ -20,6 +25,7 @@ type TaskRepo interface {
 	DeleteTaskByID(context.Context, int) error
 	StartTimeTracker(context.Context, int, int) error
 	StopTimeTracker(context.Context, int, int) error
+	GetAllTasks(context.Context) ([]Task, error)
 }
 
 type TaskService interface {
@@ -29,4 +35,5 @@ type TaskService interface {
 	DeleteTaskByID(context.Context, int) error
 	StartTimeTracker(context.Context, int, int) error
 	StopTimeTracker(context.Context, int, int) error
+	GetAllTasks(context.Context) ([]Task, error)
 }

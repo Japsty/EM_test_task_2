@@ -33,13 +33,11 @@ func (uh *UserHandler) getPeopleInfo(passportNumber string) (models.APIResponse,
 		passportNumber[:4],
 		passportNumber[5:],
 	)
-	fmt.Println(apiURL)
 
 	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
 	if err != nil {
 		return models.APIResponse{}, err
 	}
-	fmt.Println(req.Body)
 
 	resp, err := uh.Client.Do(req)
 	if err != nil {
@@ -64,10 +62,11 @@ func (uh *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	queryParams := r.URL.Query()
 	filter := models.UserFilter{
-		Surname:    queryParams.Get("surname"),
-		Name:       queryParams.Get("name"),
-		Patronymic: queryParams.Get("patronymic"),
-		Address:    queryParams.Get("address"),
+		PassportNum: queryParams.Get("passport"),
+		Surname:     queryParams.Get("surname"),
+		Name:        queryParams.Get("name"),
+		Patronymic:  queryParams.Get("patronymic"),
+		Address:     queryParams.Get("address"),
 	}
 
 	page, err := strconv.Atoi(queryParams.Get("page"))
@@ -85,7 +84,7 @@ func (uh *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	users, err := uh.UserService.GetAllUsers(ctxWthTimeout, filter, page, limit)
 	if err != nil {
-		uh.ZapLogger.Error(reqIDString+"GetUsers Atoi Error, caused by: ", r.Body)
+		uh.ZapLogger.Error(reqIDString+"GetUsers GetAllUsers Error: ", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -99,9 +98,19 @@ func (uh *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (uh *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	userID, _ := strconv.Atoi(mux.Vars(r)["user_id"])
+	ctxWthTimeout, cancel := context.WithTimeout(r.Context(), TimeoutTime)
+	defer cancel()
 
-	err := uh.UserService.DeleteUser(r.Context(), userID)
+	reqIDString := fmt.Sprintf("requestID: %s ", r.Context().Value("requestID"))
+
+	userID, err := strconv.Atoi(mux.Vars(r)["user_id"])
+	if err != nil {
+		uh.ZapLogger.Infof(reqIDString+"DeleteUser Atoi Error: ", r.URL.Query())
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	err = uh.UserService.DeleteUser(ctxWthTimeout, userID)
 	if err != nil {
 		http.Error(w, "Error deleting user", http.StatusInternalServerError)
 		return
@@ -151,7 +160,7 @@ func (uh *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&usersPassportData)
 	if err != nil {
 		uh.ZapLogger.Error(reqIDString+"AddUser Decode Error, caused by: ", r.Body)
-		http.Error(w, "Invalid input", http.StatusInternalServerError)
+		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
 

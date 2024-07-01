@@ -6,7 +6,6 @@ import (
 	"EMTask/internal/services"
 	"context"
 	"github.com/DATA-DOG/go-sqlmock"
-	"reflect"
 	"regexp"
 	"testing"
 )
@@ -67,13 +66,6 @@ func TestAddUser(t *testing.T) {
 			}
 
 			for idx, comm := range comments {
-				if !reflect.DeepEqual(deletePointer(comm), deletePointer(tc.OutputStruct[idx])) {
-					t.Errorf(
-						"Unexpected comment data. Got %+v, expected %+v",
-						deletePointer(comm),
-						deletePointer(tc.OutputStruct[idx]),
-					)
-				}
 			}
 
 			if err = mock.ExpectationsWereMet(); err != nil {

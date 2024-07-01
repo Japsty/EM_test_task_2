@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS users
 (
     id SERIAL PRIMARY KEY,
-    passport_hash VARCHAR(255) NOT NULL,
+    passport_number VARCHAR(255) NOT NULL,
     surname VARCHAR(50) NOT NULL,
     name VARCHAR(50) NOT NULL,
     patronymic VARCHAR(50) NOT NULL,

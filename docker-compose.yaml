@@ -28,7 +28,6 @@ services:
       - DSN=${DSN}
       - API_URL=${API_URL}
       - PORT=${PORT}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
 
 networks:
   service_network:

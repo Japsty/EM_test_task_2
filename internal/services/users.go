@@ -6,9 +6,8 @@ import (
 )
 
 type UsersService struct {
-	usersRepo  models.UserRepo
-	encService EncodeService
-	apiURL     string
+	usersRepo models.UserRepo
+	apiURL    string
 }
 
 func NewUserService(repo models.UserRepo) *UsersService {
@@ -24,17 +23,12 @@ func (us *UsersService) GetAllUsers(ctx context.Context, filter models.UserFilte
 }
 
 func (us *UsersService) CreateUser(ctx context.Context, resp models.APIResponse, passport string) (models.User, error) {
-	passportEncoded, err := us.encService.Encrypt(passport)
-	if err != nil {
-		return models.User{}, err
-	}
-
 	user := models.ServiceUser{
-		PassportHash: passportEncoded,
-		Surname:      resp.Surname,
-		Name:         resp.Name,
-		Patronymic:   resp.Patronymic,
-		Address:      resp.Address,
+		PassportNum: passport,
+		Surname:     resp.Surname,
+		Name:        resp.Name,
+		Patronymic:  resp.Patronymic,
+		Address:     resp.Address,
 	}
 
 	userID, err := us.usersRepo.AddUser(ctx, user)

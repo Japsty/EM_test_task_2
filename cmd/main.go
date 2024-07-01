@@ -47,9 +47,7 @@ func main() {
 		Timeout: time.Second,
 	}
 
-	es := services.NewEncodeService(os.Getenv("ENCRYPTION_KEY"))
-
-	userRepo := repos.NewUsersRepository(postgreConn, es)
+	userRepo := repos.NewUsersRepository(postgreConn)
 	taskRepo := repos.NewTasksRepository(postgreConn)
 
 	us := services.NewUserService(userRepo)
@@ -64,14 +62,18 @@ func main() {
 		return middleware.AccessLog(logger, next)
 	})
 
-	r.HandleFunc("/users", uh.GetUsers).Methods("GET")
-	r.HandleFunc("/user/{user_id}", uh.DeleteUser).Methods("DELETE")
-	r.HandleFunc("/user/{user_id}", uh.UpdateUser).Methods("PATCH")
-	r.HandleFunc("/user", uh.AddUser).Methods("POST")
+	r.HandleFunc("/users", uh.GetUsers).Methods(http.MethodGet)
+	r.HandleFunc("/user/{user_id}", uh.DeleteUser).Methods(http.MethodDelete)
+	r.HandleFunc("/user/{user_id}", uh.UpdateUser).Methods(http.MethodPatch)
+	r.HandleFunc("/user", uh.AddUser).Methods(http.MethodPost)
 
-	r.HandleFunc("/user/tasks", th.GetUsersTasks).Methods("GET")
-	r.HandleFunc("/user/task/track/{user_id}/{task_id}", th.StartTracker).Methods("POST")
-	r.HandleFunc("/user/task/stop/{user_id}/{task_id}", th.StopTracker).Methods("POST")
+	r.HandleFunc("/tasks", th.CreateTask).Methods(http.MethodPost)
+	r.HandleFunc("/tasks/{task_id}", th.GetTaskByID).Methods(http.MethodGet)
+	r.HandleFunc("/tasks/{task_id}", th.DeleteTaskByID).Methods(http.MethodDelete)
+	r.HandleFunc("/user/tasks", th.GetUsersTasks).Methods(http.MethodGet)
+	r.HandleFunc("/user/task/track/{user_id}/{task_id}", th.StartTracker).Methods(http.MethodPost)
+	r.HandleFunc("/user/task/stop/{user_id}/{task_id}", th.StopTracker).Methods(http.MethodPost)
+	r.HandleFunc("/tasks", th.GetAllTasks).Methods(http.MethodGet)
 
 	addr := ":" + os.Getenv("PORT")
 	logger.Infow("starting server",

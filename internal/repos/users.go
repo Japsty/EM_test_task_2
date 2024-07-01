@@ -3,7 +3,6 @@ package repos
 import (
 	"EMTask/internal/models"
 	"EMTask/internal/repos/queries"
-	"EMTask/internal/services"
 	"context"
 	"database/sql"
 	"errors"
@@ -13,18 +12,20 @@ import (
 var errNotFound = errors.New("user not found: ")
 
 type UsersRepository struct {
-	db         *sql.DB
-	encService services.EncodeService
+	db *sql.DB
 }
 
-func NewUsersRepository(db *sql.DB, es *services.EncodeService) *UsersRepository {
-	return &UsersRepository{db: db, encService: *es}
+func NewUsersRepository(db *sql.DB) *UsersRepository {
+	return &UsersRepository{db: db}
 }
 
 func (ur *UsersRepository) GetAllUsers(ctx context.Context, filter models.UserFilter, pg, lim int) ([]models.User, error) {
-	query := squirrel.Select("id", "passport_hash", "surname", "name", "patronymic", "address").
+	query := squirrel.Select("id", "passport_number", "surname", "name", "patronymic", "address").
 		From("users")
 
+	if filter.PassportNum != "" {
+		query = query.Where(squirrel.Eq{"passport_number": filter.PassportNum})
+	}
 	if filter.Surname != "" {
 		query = query.Where(squirrel.Eq{"surname": filter.Surname})
 	}
@@ -41,33 +42,33 @@ func (ur *UsersRepository) GetAllUsers(ctx context.Context, filter models.UserFi
 	offset := (pg - 1) * lim
 	query = query.Limit(uint64(lim)).Offset(uint64(offset))
 
+	query = query.OrderBy("id")
+
+	query = query.PlaceholderFormat(squirrel.Dollar)
+
 	sqlQuery, args, err := query.ToSql()
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := ur.db.QueryContext(ctx, sqlQuery, args)
+	rows, err := ur.db.QueryContext(ctx, sqlQuery, args...)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var users []models.User
 	for rows.Next() {
 		var user models.User
-		var passHash string
 
 		err := rows.Scan(
-			user.ID,
-			passHash,
-			user.Surname,
-			user.Name,
-			user.Patronymic,
-			user.Address,
+			&user.ID,
+			&user.PassportNumber,
+			&user.Surname,
+			&user.Name,
+			&user.Patronymic,
+			&user.Address,
 		)
-		if err != nil {
-			return nil, err
-		}
-		user.PassportNumber, err = ur.encService.Decrypt(passHash)
 		if err != nil {
 			return nil, err
 		}
@@ -81,44 +82,36 @@ func (ur *UsersRepository) AddUser(ctx context.Context, user models.ServiceUser)
 	err := ur.db.QueryRowContext(
 		ctx,
 		queries.CreateUser,
-		user.PassportHash,
+		user.PassportNum,
 		user.Surname,
 		user.Name,
 		user.Patronymic,
 		user.Address,
-	).Scan(userID)
+	).Scan(&userID)
 	if err != nil {
 		return 0, err
 	}
 	return userID, nil
 }
+
 func (ur *UsersRepository) FindUserByID(ctx context.Context, usrID int) (models.User, error) {
 	var user models.User
-	var passHash string
 
 	err := ur.db.QueryRowContext(ctx, queries.FindUserByID, usrID).Scan(
-		user.ID,
-		passHash,
-		user.Surname,
-		user.Name,
-		user.Patronymic,
-		user.Address,
+		&user.ID,
+		&user.PassportNumber,
+		&user.Surname,
+		&user.Name,
+		&user.Patronymic,
+		&user.Address,
 	)
 	if err != nil {
 		return models.User{}, err
 	}
-
-	passportData, err := ur.encService.Decrypt(passHash)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	user.PassportNumber = passportData
 	return user, nil
 }
 func (ur *UsersRepository) UpdateUser(ctx context.Context, newUser models.APIResponse, usrID int) (models.User, error) {
 	var user models.User
-	var passHash string
 
 	err := ur.db.QueryRowContext(
 		ctx,
@@ -128,17 +121,10 @@ func (ur *UsersRepository) UpdateUser(ctx context.Context, newUser models.APIRes
 		newUser.Name,
 		newUser.Patronymic,
 		newUser.Address,
-	).Scan(user.ID, passHash, user.Surname, user.Name, user.Patronymic, user.Address)
+	).Scan(&user.ID, &user.PassportNumber, &user.Surname, &user.Name, &user.Patronymic, &user.Address)
 	if err != nil {
 		return models.User{}, err
 	}
-
-	passportData, err := ur.encService.Decrypt(passHash)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	user.PassportNumber = passportData
 
 	return user, nil
 }

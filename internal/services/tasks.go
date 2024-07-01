@@ -65,3 +65,12 @@ func (tr *TaskService) StopTimeTracker(ctx context.Context, id int, usrID int) e
 
 	return nil
 }
+
+func (tr *TaskService) GetAllTasks(ctx context.Context) ([]models.Task, error) {
+	tasks, err := tr.tasksRepo.GetAllTasks(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
+}
