@@ -46,6 +46,7 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Error(reqIDString+"CreateTask Decode Error, caused by: ", r.Body)
 		http.Error(w, "Invalid input", http.StatusBadRequest)
+
 		return
 	}
 
@@ -54,10 +55,13 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, repos.ErrUsrNotExists) {
 			th.ZapLogger.Error(reqIDString+"CreateTask Error: ", err)
 			http.Error(w, "Invalid user_id", http.StatusBadRequest)
+
 			return
 		}
+
 		th.ZapLogger.Error(reqIDString+"CreateTask Service Error: ", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -65,6 +69,7 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Error(reqIDString+"CreateTask Encode Error: ", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
 		return
 	}
 }
@@ -89,6 +94,7 @@ func (th *TaskHandler) GetTaskByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Infof(reqIDString+" GetTaskByID Invalid task_id: ", err)
 		http.Error(w, "Invalid task_id", http.StatusBadRequest)
+
 		return
 	}
 
@@ -97,10 +103,13 @@ func (th *TaskHandler) GetTaskByID(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, sql.ErrNoRows) {
 			th.ZapLogger.Infof(reqIDString+" GetTaskByID Not Found: ", err)
 			http.Error(w, "Not Found", http.StatusNotFound)
+
 			return
 		}
+
 		th.ZapLogger.Error(reqIDString+" GetTaskByID TaskService Error: ", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -108,6 +117,7 @@ func (th *TaskHandler) GetTaskByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Error(reqIDString+" GetTaskByID Encode Error: ", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -132,6 +142,7 @@ func (th *TaskHandler) DeleteTaskByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Infof(reqIDString+" DeleteTaskByID Invalid task_id: ", err)
 		http.Error(w, "Invalid task_id", http.StatusBadRequest)
+
 		return
 	}
 
@@ -139,6 +150,7 @@ func (th *TaskHandler) DeleteTaskByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Error(reqIDString+" DeleteTaskByID TaskService Error: ", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -171,20 +183,24 @@ func (th *TaskHandler) GetUsersTasks(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Infof(reqIDString+" GetUsersTasks Invalid user_id: ", err)
 		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+
 		return
 	}
 
 	if startTime != "" {
-		if _, err := time.Parse(time.RFC3339, startTime); err != nil {
+		if _, err = time.Parse(time.RFC3339, startTime); err != nil {
 			th.ZapLogger.Infof(reqIDString+" GetUsersTasks Invalid start_time: ", err)
 			http.Error(w, "Invalid start_time format", http.StatusBadRequest)
+
 			return
 		}
 	}
+
 	if endTime != "" {
-		if _, err := time.Parse(time.RFC3339, endTime); err != nil {
+		if _, err = time.Parse(time.RFC3339, endTime); err != nil {
 			th.ZapLogger.Infof(reqIDString+" GetUsersTasks Invalid end_time: ", err)
 			http.Error(w, "Invalid end_time format", http.StatusBadRequest)
+
 			return
 		}
 	}
@@ -193,6 +209,7 @@ func (th *TaskHandler) GetUsersTasks(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Error(reqIDString+" GetUsersTasks Error: ", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -200,6 +217,7 @@ func (th *TaskHandler) GetUsersTasks(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Error(reqIDString+" GetUsersTasks Encode Error: ", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
 		return
 	}
 }
@@ -224,6 +242,7 @@ func (th *TaskHandler) StartTracker(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Infof(reqIDString+" StartTracker Atoi Error: ", r.URL.Query())
 		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+
 		return
 	}
 
@@ -231,6 +250,7 @@ func (th *TaskHandler) StartTracker(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Infof(reqIDString+" StartTracker Atoi Error: ", r.URL.Query())
 		http.Error(w, "Invalid task_id", http.StatusBadRequest)
+
 		return
 	}
 
@@ -239,10 +259,13 @@ func (th *TaskHandler) StartTracker(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, repos.ErrTaskNotFound) {
 			th.ZapLogger.Infof(reqIDString+" StartTimeTracker TaskNotFound: ", err)
 			http.Error(w, "Task not Found", http.StatusNotFound)
+
 			return
 		}
+
 		th.ZapLogger.Error(reqIDString+" StartTimeTracker Error: ", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -269,6 +292,7 @@ func (th *TaskHandler) StopTracker(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Infof(reqIDString+" StopTracker Atoi Error: ", r.URL.Query())
 		http.Error(w, "Invalid input", http.StatusBadRequest)
+
 		return
 	}
 
@@ -276,6 +300,7 @@ func (th *TaskHandler) StopTracker(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Infof(reqIDString+" StopTracker Atoi Error: ", r.URL.Query())
 		http.Error(w, "Invalid input", http.StatusBadRequest)
+
 		return
 	}
 
@@ -284,10 +309,13 @@ func (th *TaskHandler) StopTracker(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, repos.ErrTaskNotFound) {
 			th.ZapLogger.Infof(reqIDString+" StopTimeTracker TaskNotFound: ", err)
 			http.Error(w, "Task not Found", http.StatusNotFound)
+
 			return
 		}
+
 		th.ZapLogger.Error(reqIDString+" StopTimeTracker Error: ", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -311,6 +339,7 @@ func (th *TaskHandler) GetAllTasks(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Error(reqIDString+"GetAllTasks Error: ", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -318,6 +347,7 @@ func (th *TaskHandler) GetAllTasks(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		th.ZapLogger.Error(reqIDString+"GetAllTasks Encode Error: ", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
 		return
 	}
 }

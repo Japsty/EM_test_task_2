@@ -26,9 +26,11 @@ func (tr *TasksRepository) AddTask(ctx context.Context, name string, usrID int) 
 
 	var exists bool
 	err := tr.db.QueryRowContext(ctx, queries.ExistCheck, usrID).Scan(&exists)
+
 	if err != nil {
 		return models.Task{}, err
 	}
+
 	if !exists {
 		return models.Task{}, ErrUsrNotExists
 	}
@@ -70,12 +72,12 @@ func (tr *TasksRepository) FindTasksByUserID(ctx context.Context, usrID int, sta
 	if startTime != "" {
 		query = query.Where(squirrel.GtOrEq{"start_time": startTime})
 	}
+
 	if endTime != "" {
 		query = query.Where(squirrel.LtOrEq{"end_time": endTime})
 	}
 
 	if startTime != "" && endTime != "" {
-
 		query = query.OrderBy("AGE(end_time, start_time) DESC")
 	}
 
@@ -93,12 +95,15 @@ func (tr *TasksRepository) FindTasksByUserID(ctx context.Context, usrID int, sta
 	defer rows.Close()
 
 	var tasks []models.Task
+
 	for rows.Next() {
 		var task models.Task
 		err = rows.Scan(&task.ID, &task.Name, &task.UserID, &task.StartTime, &task.EndTime)
+
 		if err != nil {
 			return nil, err
 		}
+
 		tasks = append(tasks, task)
 	}
 
@@ -151,9 +156,11 @@ func (tr *TasksRepository) GetAllTasks(ctx context.Context) ([]models.Task, erro
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	var tasks []models.Task
+
 	for rows.Next() {
 		var task models.Task
 
@@ -167,7 +174,9 @@ func (tr *TasksRepository) GetAllTasks(ctx context.Context) ([]models.Task, erro
 		if err != nil {
 			return nil, err
 		}
+
 		tasks = append(tasks, task)
 	}
+
 	return tasks, nil
 }

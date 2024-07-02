@@ -7,7 +7,6 @@ import (
 
 type UsersService struct {
 	usersRepo models.UserRepo
-	apiURL    string
 }
 
 func NewUserService(repo models.UserRepo) *UsersService {
@@ -19,6 +18,7 @@ func (us *UsersService) GetAllUsers(ctx context.Context, filter models.UserFilte
 	if err != nil {
 		return nil, err
 	}
+
 	return users, nil
 }
 
