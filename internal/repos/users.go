@@ -26,15 +26,19 @@ func (ur *UsersRepository) GetAllUsers(ctx context.Context, filter models.UserFi
 	if filter.PassportNum != "" {
 		query = query.Where(squirrel.Eq{"passport_number": filter.PassportNum})
 	}
+
 	if filter.Surname != "" {
 		query = query.Where(squirrel.Eq{"surname": filter.Surname})
 	}
+
 	if filter.Name != "" {
 		query = query.Where(squirrel.Eq{"name": filter.Name})
 	}
+
 	if filter.Patronymic != "" {
 		query = query.Where(squirrel.Eq{"patronymic": filter.Patronymic})
 	}
+
 	if filter.Address != "" {
 		query = query.Where(squirrel.Eq{"address": filter.Address})
 	}
@@ -55,9 +59,11 @@ func (ur *UsersRepository) GetAllUsers(ctx context.Context, filter models.UserFi
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	var users []models.User
+
 	for rows.Next() {
 		var user models.User
 
@@ -72,13 +78,16 @@ func (ur *UsersRepository) GetAllUsers(ctx context.Context, filter models.UserFi
 		if err != nil {
 			return nil, err
 		}
+
 		users = append(users, user)
 	}
+
 	return users, nil
 }
 
 func (ur *UsersRepository) AddUser(ctx context.Context, user models.ServiceUser) (int, error) {
 	var userID int
+
 	err := ur.db.QueryRowContext(
 		ctx,
 		queries.CreateUser,
@@ -91,6 +100,7 @@ func (ur *UsersRepository) AddUser(ctx context.Context, user models.ServiceUser)
 	if err != nil {
 		return 0, err
 	}
+
 	return userID, nil
 }
 

@@ -35,7 +35,7 @@ func (uh *UserHandler) getPeopleInfo(passportNumber string) (models.APIResponse,
 		passportNumber[5:],
 	)
 
-	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, apiURL, nil)
 	if err != nil {
 		return models.APIResponse{}, err
 	}
@@ -44,6 +44,8 @@ func (uh *UserHandler) getPeopleInfo(passportNumber string) (models.APIResponse,
 	if err != nil {
 		return models.APIResponse{}, err
 	}
+
+	defer resp.Body.Close()
 
 	var apiResponse models.APIResponse
 
@@ -89,12 +91,15 @@ func (uh *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil || page < 1 {
 		uh.ZapLogger.Infof(reqIDString+"GetUsers Invalid Page param: ", r.URL.Query())
 		http.Error(w, " Invalid Page param", http.StatusBadRequest)
+
 		return
 	}
+
 	limit, err := strconv.Atoi(queryParams.Get("limit"))
 	if err != nil || limit < 1 {
 		uh.ZapLogger.Infof(reqIDString+"GetUsers Invalid Limit param: ", r.URL.Query())
 		http.Error(w, "Invalid Limit param", http.StatusBadRequest)
+
 		return
 	}
 
@@ -102,6 +107,7 @@ func (uh *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		uh.ZapLogger.Error(reqIDString+"GetUsers GetAllUsers Error: ", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -109,6 +115,7 @@ func (uh *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		uh.ZapLogger.Error(reqIDString+"GetUsers Encode Error: ", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
 		return
 	}
 }
@@ -131,6 +138,7 @@ func (uh *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		uh.ZapLogger.Infof(reqIDString+"DeleteUser Atoi Error: ", r.URL.Query())
 		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+
 		return
 	}
 
@@ -138,6 +146,7 @@ func (uh *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		uh.ZapLogger.Error(reqIDString+"DeleteUser Service Error: ", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -164,6 +173,7 @@ func (uh *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		uh.ZapLogger.Infof(reqIDString+"UpdateUser Atoi Error: ", r.URL.Query())
 		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+
 		return
 	}
 
@@ -172,6 +182,7 @@ func (uh *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
+
 		return
 	}
 
@@ -179,6 +190,7 @@ func (uh *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		uh.ZapLogger.Error(reqIDString+"UpdateUser Service Error: ", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -186,6 +198,7 @@ func (uh *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		uh.ZapLogger.Error(reqIDString+"GetUsers Encode Error: ", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
 		return
 	}
 }
@@ -212,6 +225,7 @@ func (uh *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		uh.ZapLogger.Error(reqIDString+"AddUser Decode Error, caused by: ", r.Body)
 		http.Error(w, "Invalid input", http.StatusBadRequest)
+
 		return
 	}
 
@@ -219,6 +233,7 @@ func (uh *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 	if !match {
 		uh.ZapLogger.Infof(reqIDString + "AddUser Invalid Passport Number Format")
 		http.Error(w, "Invalid passport number format. Expected format: '1234 567890'", http.StatusBadRequest)
+
 		return
 	}
 
@@ -226,6 +241,7 @@ func (uh *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		uh.ZapLogger.Error(reqIDString+"AddUser getPeopleInfo Error: ", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -233,6 +249,7 @@ func (uh *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		uh.ZapLogger.Error(reqIDString+"AddUser Service Error: ", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -240,6 +257,7 @@ func (uh *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		uh.ZapLogger.Error(reqIDString+"AddUser Encode Error: ", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
 		return
 	}
 }

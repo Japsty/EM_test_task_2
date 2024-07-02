@@ -56,6 +56,7 @@ func TestGetAllUsers(t *testing.T) {
 	if len(users) != 2 {
 		t.Errorf("expected 2 users, got %d", len(users))
 	}
+
 	if users[0].ID != 1 || users[1].ID != 2 {
 		t.Errorf("unexpected user IDs: got %d and %d, want 1 and 2", users[0].ID, users[1].ID)
 	}

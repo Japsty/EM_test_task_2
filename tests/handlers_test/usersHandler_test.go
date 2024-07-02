@@ -5,7 +5,6 @@ import (
 	"EMTask/internal/models"
 	"EMTask/internal/services"
 	"EMTask/tests/mocks/reposmocks"
-	"bytes"
 	"errors"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -27,10 +26,9 @@ func (e *errorResponseWriter) Write([]byte) (int, error) {
 }
 
 type mockRequest struct {
-	mockRequestMethod        string
-	mockRequestURL           string
-	mockRequestBody          *strings.Reader
-	mockIncorrectRequestBody *bytes.Buffer
+	mockRequestMethod string
+	mockRequestURL    string
+	mockRequestBody   *strings.Reader
 }
 
 var mockServiceUser = models.ServiceUser{
@@ -161,6 +159,7 @@ func TestAddUser(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			logger := zapLogger.Sugar()
 
 			os.Setenv("API_URL", tc.apiURL)
@@ -204,6 +203,7 @@ func TestGetUsers(t *testing.T) {
 		users []models.User
 		err   error
 	}
+
 	mockUser1 := mockUser
 	mockUser2 := mockUser
 	mockUser3 := mockUser
@@ -411,6 +411,7 @@ func TestGetUsers(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			logger := zapLogger.Sugar()
 
 			mockUserRepo := new(reposmocks.MockUserRepo)
@@ -514,6 +515,7 @@ func TestDeleteUser(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			logger := zapLogger.Sugar()
 
 			mockUserRepo := new(reposmocks.MockUserRepo)
@@ -673,6 +675,7 @@ func TestUpdateUser(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			logger := zapLogger.Sugar()
 
 			mockUserRepo := new(reposmocks.MockUserRepo)

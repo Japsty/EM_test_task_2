@@ -23,12 +23,14 @@ func main() {
 	if err != nil {
 		return
 	}
+
 	defer func(zapLogger *zap.Logger) {
 		err = zapLogger.Sync()
 		if err != nil {
 			return
 		}
 	}(zapLogger)
+
 	logger := zapLogger.Sugar()
 
 	postgreConn, err := connect.NewPostgresConnection(os.Getenv("DSN"))

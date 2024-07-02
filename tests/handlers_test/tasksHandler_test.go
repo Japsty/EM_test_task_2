@@ -139,6 +139,7 @@ func TestCreateTask(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			logger := zapLogger.Sugar()
 
 			mockTasksRepo := new(reposmocks.MockTasksRepo)
@@ -273,6 +274,7 @@ func TestGetTaskByID(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			logger := zapLogger.Sugar()
 
 			mockTasksRepo := new(reposmocks.MockTasksRepo)
@@ -374,6 +376,7 @@ func TestDeleteTaskByID(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			logger := zapLogger.Sugar()
 
 			mockTasksRepo := new(reposmocks.MockTasksRepo)
@@ -550,6 +553,7 @@ func TestGetUsersTasks(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			logger := zapLogger.Sugar()
 
 			mockTasksRepo := new(reposmocks.MockTasksRepo)
@@ -601,6 +605,7 @@ func TestStartTracker(t *testing.T) {
 	type mockRepoResp struct {
 		mockError error
 	}
+
 	type mockReqParam struct {
 		taskID int
 		usrID  int
@@ -700,6 +705,7 @@ func TestStartTracker(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			logger := zapLogger.Sugar()
 
 			mockTasksRepo := new(reposmocks.MockTasksRepo)
@@ -752,6 +758,7 @@ func TestStopTracker(t *testing.T) {
 	type mockRepoResp struct {
 		mockError error
 	}
+
 	type mockReqParam struct {
 		taskID int
 		usrID  int
@@ -851,6 +858,7 @@ func TestStopTracker(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			logger := zapLogger.Sugar()
 
 			mockTasksRepo := new(reposmocks.MockTasksRepo)
@@ -903,12 +911,6 @@ func TestGetAllTasks(t *testing.T) {
 	type mockRepoResp struct {
 		tasks     []models.Task
 		mockError error
-	}
-
-	type findTasksReq struct {
-		usrID     int
-		startTime string
-		endTime   string
 	}
 
 	mockTask1 := models.Task{
@@ -989,6 +991,7 @@ func TestGetAllTasks(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			logger := zapLogger.Sugar()
 
 			mockTasksRepo := new(reposmocks.MockTasksRepo)
