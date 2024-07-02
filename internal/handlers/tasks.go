@@ -41,7 +41,7 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 
 	user, err := th.TaskService.CreateTask(ctxWthTimeout, newTaskRequest.Name, newTaskRequest.UserID)
 	if err != nil {
-		if errors.As(err, &repos.ErrUsrNotExists) {
+		if errors.Is(err, repos.ErrUsrNotExists) {
 			th.ZapLogger.Error(reqIDString+"CreateTask Error: ", err)
 			http.Error(w, "Invalid user_id", http.StatusBadRequest)
 			return
@@ -74,7 +74,7 @@ func (th *TaskHandler) GetTaskByID(w http.ResponseWriter, r *http.Request) {
 
 	task, err := th.TaskService.GetTaskByID(ctxWthTimeout, taskID)
 	if err != nil {
-		if errors.As(err, &sql.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			th.ZapLogger.Infof(reqIDString+" GetTaskByID Not Found: ", err)
 			http.Error(w, "Not Found", http.StatusNotFound)
 			return
@@ -186,7 +186,7 @@ func (th *TaskHandler) StartTracker(w http.ResponseWriter, r *http.Request) {
 
 	err = th.TaskService.StartTimeTracker(ctxWthTimeout, taskID, userID)
 	if err != nil {
-		if errors.As(err, &repos.ErrTaskNotFound) {
+		if errors.Is(err, repos.ErrTaskNotFound) {
 			th.ZapLogger.Infof(reqIDString+" StartTimeTracker TaskNotFound: ", err)
 			http.Error(w, "Task not Found", http.StatusNotFound)
 			return
@@ -221,7 +221,7 @@ func (th *TaskHandler) StopTracker(w http.ResponseWriter, r *http.Request) {
 
 	err = th.TaskService.StopTimeTracker(ctxWthTimeout, taskID, userID)
 	if err != nil {
-		if errors.As(err, &repos.ErrTaskNotFound) {
+		if errors.Is(err, repos.ErrTaskNotFound) {
 			th.ZapLogger.Infof(reqIDString+" StopTimeTracker TaskNotFound: ", err)
 			http.Error(w, "Task not Found", http.StatusNotFound)
 			return

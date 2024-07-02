@@ -9,11 +9,13 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
 )
 
 var TimeoutTime = 500 * time.Millisecond
+var passportNumberPattern = `^\d{4} \d{6}$`
 
 type UserHandler struct {
 	UserService models.UserService
@@ -26,7 +28,6 @@ func NewUserHandler(us models.UserService, logger *zap.SugaredLogger, client *ht
 }
 
 func (uh *UserHandler) getPeopleInfo(passportNumber string) (models.APIResponse, error) {
-	fmt.Println(passportNumber)
 	apiURL := fmt.Sprintf(
 		"%s/info?passportSerie=%s&passportNumber=%s",
 		os.Getenv("API_URL"),
@@ -125,11 +126,16 @@ func (uh *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	reqIDString := fmt.Sprintf("requestID: %s ", r.Context().Value("requestID"))
 
-	userID, _ := strconv.Atoi(mux.Vars(r)["user_id"])
+	userID, err := strconv.Atoi(mux.Vars(r)["user_id"])
+	if err != nil {
+		uh.ZapLogger.Infof(reqIDString+"UpdateUser Atoi Error: ", r.URL.Query())
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
 
 	var user models.APIResponse
 
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
@@ -164,25 +170,12 @@ func (uh *UserHandler) AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//passportData := strings.Split(usersPassportData.PassportNumber, " ")
-	//
-	//series, err := strconv.Atoi(passportData[0])
-	//if err != nil {
-	//	uh.ZapLogger.Error(reqIDString+"AddUser Atoi Error, caused by: ", r.Body)
-	//	http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-	//	return
-	//}
-	//
-	//number, err := strconv.Atoi(passportData[1])
-	//if err != nil {
-	//	uh.ZapLogger.Error(reqIDString+"AddUser Atoi Error, caused by: ", r.Body)
-	//	http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-	//	return
-	//}
-
-	//if series/1000 == 0 && number/100000 == 0 {
-	//
-	//}
+	match, _ := regexp.MatchString(passportNumberPattern, usersPassportData.PassportNumber)
+	if !match {
+		uh.ZapLogger.Infof(reqIDString + "AddUser Invalid Passport Number Format")
+		http.Error(w, "Invalid passport number format. Expected format: '1234 567890'", http.StatusBadRequest)
+		return
+	}
 
 	apiResponse, err := uh.getPeopleInfo(usersPassportData.PassportNumber)
 	if err != nil {

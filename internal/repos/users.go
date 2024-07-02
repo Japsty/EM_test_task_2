@@ -94,22 +94,6 @@ func (ur *UsersRepository) AddUser(ctx context.Context, user models.ServiceUser)
 	return userID, nil
 }
 
-func (ur *UsersRepository) FindUserByID(ctx context.Context, usrID int) (models.User, error) {
-	var user models.User
-
-	err := ur.db.QueryRowContext(ctx, queries.FindUserByID, usrID).Scan(
-		&user.ID,
-		&user.PassportNumber,
-		&user.Surname,
-		&user.Name,
-		&user.Patronymic,
-		&user.Address,
-	)
-	if err != nil {
-		return models.User{}, err
-	}
-	return user, nil
-}
 func (ur *UsersRepository) UpdateUser(ctx context.Context, newUser models.APIResponse, usrID int) (models.User, error) {
 	var user models.User
 

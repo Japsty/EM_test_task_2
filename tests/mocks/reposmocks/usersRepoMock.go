@@ -20,11 +20,6 @@ func (repo *MockUserRepo) AddUser(ctx context.Context, user models.ServiceUser) 
 	return args.Get(0).(int), args.Error(1)
 }
 
-func (repo *MockUserRepo) FindUserByID(ctx context.Context, usrID int) (models.User, error) {
-	args := repo.Called(ctx, usrID)
-	return args.Get(0).(models.User), args.Error(1)
-}
-
 func (repo *MockUserRepo) UpdateUser(ctx context.Context, newUser models.APIResponse, usrID int) (models.User, error) {
 	args := repo.Called(ctx, newUser, usrID)
 	return args.Get(0).(models.User), args.Error(1)

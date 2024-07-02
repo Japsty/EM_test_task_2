@@ -46,14 +46,6 @@ func (us *UsersService) CreateUser(ctx context.Context, resp models.APIResponse,
 	}, nil
 }
 
-func (us *UsersService) GetUserByID(ctx context.Context, usrID int) (models.User, error) {
-	users, err := us.usersRepo.FindUserByID(ctx, usrID)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	return users, nil
-}
 func (us *UsersService) UpdateUser(ctx context.Context, response models.APIResponse, usrID int) (models.User, error) {
 	users, err := us.usersRepo.UpdateUser(ctx, response, usrID)
 	if err != nil {
