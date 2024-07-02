@@ -15,6 +15,9 @@ import (
 	"time"
 )
 
+// @title Time Tracker
+// @version 1.0
+// @description RESTful Time Tracker for EM
 func main() {
 	zapLogger, err := zap.NewProduction()
 	if err != nil {

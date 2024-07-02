@@ -24,6 +24,16 @@ func NewTaskHandler(ts models.TaskService, logger *zap.SugaredLogger) *TaskHandl
 	return &TaskHandler{ts, logger}
 }
 
+// @Summary Create a new task
+// @Description Создание новой задачи
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param task body models.NewTaskRequest true "New Task"
+// @Success 200 {object} models.Task
+// @Failure 400 {string} string "Invalid input"
+// @Failure 500 {string} string "Internal server error"
+// @Router /tasks [post]
 func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	ctxWthTimeout, cancel := context.WithTimeout(r.Context(), TimeoutTime)
 	defer cancel()
@@ -59,6 +69,16 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get task by ID
+// @Description Получение задачи по ID
+// @Tags tasks
+// @Produce json
+// @Param task_id path int true "Task ID"
+// @Success 200 {object} models.Task
+// @Failure 400 {string} string "Invalid task_id"
+// @Failure 404 {string} string "Not Found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /tasks/{task_id} [get]
 func (th *TaskHandler) GetTaskByID(w http.ResponseWriter, r *http.Request) {
 	ctxWthTimeout, cancel := context.WithTimeout(r.Context(), TimeoutTime)
 	defer cancel()
@@ -94,6 +114,14 @@ func (th *TaskHandler) GetTaskByID(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// @Summary Delete task by ID
+// @Description Удаление задачи по ID
+// @Tags tasks
+// @Param task_id path int true "Task ID"
+// @Success 204 "No Content"
+// @Failure 400 {string} string "Invalid task_id"
+// @Failure 500 {string} string "Internal server error"
+// @Router /tasks/{task_id} [delete]
 func (th *TaskHandler) DeleteTaskByID(w http.ResponseWriter, r *http.Request) {
 	ctxWthTimeout, cancel := context.WithTimeout(r.Context(), TimeoutTime)
 	defer cancel()
@@ -117,6 +145,18 @@ func (th *TaskHandler) DeleteTaskByID(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// @Summary Get tasks by user
+// @Description Получение задач юзера по его id с сортировкой по трудозатратам
+// @Tags tasks
+// @Produce json
+// @Param user_id query int true "User ID"
+// @Param start_time query string false "Start Time (RFC3339 format)"
+// @Param end_time query string false "End Time (RFC3339 format)"
+// @Success 200 {array} models.Task
+// @Failure 400 {string} string "Invalid user_id"
+// @Failure 400 {string} string "Invalid time format"
+// @Failure 500 {string} string "Internal server error"
+// @Router /user/tasks [get]
 func (th *TaskHandler) GetUsersTasks(w http.ResponseWriter, r *http.Request) {
 	ctxWthTimeout, cancel := context.WithTimeout(r.Context(), TimeoutTime)
 	defer cancel()
@@ -164,6 +204,16 @@ func (th *TaskHandler) GetUsersTasks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Start task tracker
+// @Description Запуск таймера на задачу юзера
+// @Tags tasks
+// @Param user_id path int true "User ID"
+// @Param task_id path int true "Task ID"
+// @Success 204 "No Content"
+// @Failure 400 {string} string "Invalid user_id or task_id"
+// @Failure 404 {string} string "Task not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /user/task/track/{user_id}/{task_id} [post]
 func (th *TaskHandler) StartTracker(w http.ResponseWriter, r *http.Request) {
 	ctxWthTimeout, cancel := context.WithTimeout(r.Context(), TimeoutTime)
 	defer cancel()
@@ -199,6 +249,16 @@ func (th *TaskHandler) StartTracker(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// @Summary Stop task tracker
+// @Description Остановка таймера по задаче юзера
+// @Tags tasks
+// @Param user_id path int true "User ID"
+// @Param task_id path int true "Task ID"
+// @Success 204 "No Content"
+// @Failure 400 {string} string "Invalid user_id or task_id"
+// @Failure 404 {string} string "Task not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /user/task/stop/{user_id}/{task_id} [post]
 func (th *TaskHandler) StopTracker(w http.ResponseWriter, r *http.Request) {
 	ctxWthTimeout, cancel := context.WithTimeout(r.Context(), TimeoutTime)
 	defer cancel()
@@ -234,6 +294,13 @@ func (th *TaskHandler) StopTracker(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// @Summary Get all tasks
+// @Description Получение списка всех задач
+// @Tags tasks
+// @Produce json
+// @Success 200 {array} models.Task
+// @Failure 500 {string} string "Internal server error"
+// @Router /tasks [get]
 func (th *TaskHandler) GetAllTasks(w http.ResponseWriter, r *http.Request) {
 	ctxWthTimeout, cancel := context.WithTimeout(r.Context(), TimeoutTime)
 	defer cancel()

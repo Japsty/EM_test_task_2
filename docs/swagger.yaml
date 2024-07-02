@@ -1,0 +1,383 @@
+definitions:
+  models.NewTaskRequest:
+    properties:
+      name:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.NewUserRequest:
+    properties:
+      passportNumber:
+        type: string
+    type: object
+  models.Task:
+    properties:
+      end_time:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      start_time:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      address:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      passportNumber:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: RESTful Time Tracker for EM
+  title: Time Tracker
+  version: "1.0"
+paths:
+  /tasks:
+    get:
+      description: Получение списка всех задач
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Task'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get all tasks
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: Создание новой задачи
+      parameters:
+      - description: New Task
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/models.NewTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create a new task
+      tags:
+      - tasks
+  /tasks/{task_id}:
+    delete:
+      description: Удаление задачи по ID
+      parameters:
+      - description: Task ID
+        in: path
+        name: task_id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid task_id
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Delete task by ID
+      tags:
+      - tasks
+    get:
+      description: Получение задачи по ID
+      parameters:
+      - description: Task ID
+        in: path
+        name: task_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Invalid task_id
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get task by ID
+      tags:
+      - tasks
+  /user:
+    post:
+      consumes:
+      - application/json
+      description: Добавить пользователя по его паспортным данным
+      parameters:
+      - description: New User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.NewUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Add a new user
+      tags:
+      - users
+  /user/{user_id}:
+    delete:
+      description: Удалить юзера по ID
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid user_id
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Delete User by ID
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: Обновить юзера по ID
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Update User by ID
+      tags:
+      - users
+  /user/task/stop/{user_id}/{task_id}:
+    post:
+      description: Остановка таймера по задаче юзера
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Task ID
+        in: path
+        name: task_id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid user_id or task_id
+          schema:
+            type: string
+        "404":
+          description: Task not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Stop task tracker
+      tags:
+      - tasks
+  /user/task/track/{user_id}/{task_id}:
+    post:
+      description: Запуск таймера на задачу юзера
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Task ID
+        in: path
+        name: task_id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid user_id or task_id
+          schema:
+            type: string
+        "404":
+          description: Task not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Start task tracker
+      tags:
+      - tasks
+  /user/tasks:
+    get:
+      description: Получение задач юзера по его id с сортировкой по трудозатратам
+      parameters:
+      - description: User ID
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      - description: Start Time (RFC3339 format)
+        in: query
+        name: start_time
+        type: string
+      - description: End Time (RFC3339 format)
+        in: query
+        name: end_time
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Task'
+            type: array
+        "400":
+          description: Invalid time format
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get tasks by user
+      tags:
+      - tasks
+  /users:
+    get:
+      description: Получить юзеров с пагинацией и фильтрацией
+      parameters:
+      - description: 1234 567890
+        in: query
+        name: passport
+        type: string
+      - description: Иванов
+        in: query
+        name: surname
+        type: string
+      - description: Иван
+        in: query
+        name: name
+        type: string
+      - description: Иванович
+        in: query
+        name: patronymic
+        type: string
+      - description: г. Москва, ул. Ленина, д. 5, кв. 1
+        in: query
+        name: address
+        type: string
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "400":
+          description: Invalid Page or Limit param
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get Users
+      tags:
+      - users
+swagger: "2.0"
