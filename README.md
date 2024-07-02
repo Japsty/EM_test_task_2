@@ -14,7 +14,7 @@
 docker compose --env-file .env up
 ```
 
-Для мока API использовал Prism
+Для мока API использовал [Prism](https://stoplight.io/open-source/prism)
 ```
 prism mock mockAPI.yaml -h 0.0.0.0  
 ```
